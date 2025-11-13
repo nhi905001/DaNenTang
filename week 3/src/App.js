@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import MusicPlayer from './components/MusicPlayer';
-import VideoPlayer from './components/VideoPlayer';
-import MusicLibrary from './components/MusicLibrary';
-import FileUpload from './components/FileUpload';
+import React, { useState, useRef, useEffect } from "react";
+import MusicPlayer from "./components/MusicPlayer";
+import VideoPlayer from "./components/VideoPlayer";
+import MusicLibrary from "./components/MusicLibrary";
+import FileUpload from "./components/FileUpload";
 
 function App() {
   const [musicFiles, setMusicFiles] = useState([]);
@@ -15,7 +15,7 @@ function App() {
 
   // Load music files from localStorage on component mount
   useEffect(() => {
-    const savedMusic = localStorage.getItem('musicFiles');
+    const savedMusic = localStorage.getItem("musicFiles");
     if (savedMusic) {
       setMusicFiles(JSON.parse(savedMusic));
     }
@@ -23,41 +23,40 @@ function App() {
 
   // Save music files to localStorage whenever musicFiles changes
   useEffect(() => {
-    localStorage.setItem('musicFiles', JSON.stringify(musicFiles));
+    localStorage.setItem("musicFiles", JSON.stringify(musicFiles));
   }, [musicFiles]);
 
   const getFileType = (file) => {
-    if (file.type.startsWith('video/')) return 'video';
-    if (file.type.startsWith('audio/')) return 'audio';
-    if (file.name.match(/\.(mp4|avi|mov|mkv|webm)$/i)) return 'video';
-    return 'audio';
+    if (file.type.startsWith("video/")) return "video";
+    if (file.type.startsWith("audio/")) return "audio";
+    if (file.name.match(/\.(mp4|avi|mov|mkv|webm)$/i)) return "video";
+    return "audio";
   };
 
   const handleFileUpload = (files) => {
-    const newMusicFiles = Array.from(files).map(file => ({
+    const newMusicFiles = Array.from(files).map((file) => ({
       id: Date.now() + Math.random(),
       name: file.name,
       file: file,
       url: URL.createObjectURL(file),
       size: file.size,
       type: file.type,
-      mediaType: getFileType(file)
+      mediaType: getFileType(file),
     }));
-    
-    setMusicFiles(prev => [...prev, ...newMusicFiles]);
-    
-    // Cache files for offline use
+
+    setMusicFiles((prev) => [...prev, ...newMusicFiles]);
+
     cacheFilesForOffline(newMusicFiles);
   };
 
   const cacheFilesForOffline = async (files) => {
-    if ('caches' in window) {
-      const cache = await caches.open('music-cache-v1');
+    if ("caches" in window) {
+      const cache = await caches.open("music-cache-v1");
       files.forEach(async (musicFile) => {
         try {
           await cache.put(musicFile.url, await fetch(musicFile.url));
         } catch (error) {
-          console.error('Failed to cache file:', error);
+          console.error("Failed to cache file:", error);
         }
       });
     }
@@ -66,8 +65,8 @@ function App() {
   const handlePlay = (track) => {
     setCurrentTrack(track);
     setIsPlaying(true);
-    
-    if (track.mediaType === 'video') {
+
+    if (track.mediaType === "video") {
       if (videoRef.current) {
         videoRef.current.src = track.url;
         videoRef.current.play();
@@ -82,7 +81,7 @@ function App() {
 
   const handlePause = () => {
     setIsPlaying(false);
-    if (currentTrack && currentTrack.mediaType === 'video') {
+    if (currentTrack && currentTrack.mediaType === "video") {
       if (videoRef.current) {
         videoRef.current.pause();
       }
@@ -95,7 +94,9 @@ function App() {
 
   const handleNext = () => {
     if (currentTrack) {
-      const currentIndex = musicFiles.findIndex(track => track.id === currentTrack.id);
+      const currentIndex = musicFiles.findIndex(
+        (track) => track.id === currentTrack.id
+      );
       const nextIndex = (currentIndex + 1) % musicFiles.length;
       handlePlay(musicFiles[nextIndex]);
     }
@@ -103,14 +104,20 @@ function App() {
 
   const handlePrevious = () => {
     if (currentTrack) {
-      const currentIndex = musicFiles.findIndex(track => track.id === currentTrack.id);
-      const prevIndex = currentIndex === 0 ? musicFiles.length - 1 : currentIndex - 1;
+      const currentIndex = musicFiles.findIndex(
+        (track) => track.id === currentTrack.id
+      );
+      const prevIndex =
+        currentIndex === 0 ? musicFiles.length - 1 : currentIndex - 1;
       handlePlay(musicFiles[prevIndex]);
     }
   };
 
   const handleTimeUpdate = () => {
-    const mediaElement = currentTrack && currentTrack.mediaType === 'video' ? videoRef.current : audioRef.current;
+    const mediaElement =
+      currentTrack && currentTrack.mediaType === "video"
+        ? videoRef.current
+        : audioRef.current;
     if (mediaElement) {
       setCurrentTime(mediaElement.currentTime);
       setDuration(mediaElement.duration);
@@ -122,8 +129,11 @@ function App() {
     const clickX = e.clientX - rect.left;
     const width = rect.width;
     const newTime = (clickX / width) * duration;
-    
-    const mediaElement = currentTrack && currentTrack.mediaType === 'video' ? videoRef.current : audioRef.current;
+
+    const mediaElement =
+      currentTrack && currentTrack.mediaType === "video"
+        ? videoRef.current
+        : audioRef.current;
     if (mediaElement) {
       mediaElement.currentTime = newTime;
       setCurrentTime(newTime);
@@ -135,17 +145,17 @@ function App() {
   };
 
   const deleteTrack = (trackId) => {
-    setMusicFiles(prev => prev.filter(track => track.id !== trackId));
+    setMusicFiles((prev) => prev.filter((track) => track.id !== trackId));
     if (currentTrack && currentTrack.id === trackId) {
       setIsPlaying(false);
       setCurrentTrack(null);
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.src = '';
+        audioRef.current.src = "";
       }
       if (videoRef.current) {
         videoRef.current.pause();
-        videoRef.current.src = '';
+        videoRef.current.src = "";
       }
     }
   };
@@ -170,7 +180,7 @@ function App() {
 
           {/* Music Library */}
           <div className="lg:col-span-2">
-            <MusicLibrary 
+            <MusicLibrary
               musicFiles={musicFiles}
               currentTrack={currentTrack}
               onPlay={handlePlay}
@@ -182,7 +192,7 @@ function App() {
         {/* Media Player */}
         {currentTrack && (
           <div className="mt-8">
-            {currentTrack.mediaType === 'video' ? (
+            {currentTrack.mediaType === "video" ? (
               <VideoPlayer
                 currentTrack={currentTrack}
                 isPlaying={isPlaying}
@@ -230,7 +240,7 @@ function App() {
               setDuration(videoRef.current.duration);
             }
           }}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
       </div>
     </div>
